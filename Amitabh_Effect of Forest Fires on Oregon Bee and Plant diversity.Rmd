@@ -1,0 +1,22 @@
+# Question prompt
+Final project topic selection: We will be building toward the final project throughout the class. At this stage we need enough information from you to tailor the data sources we cover and the examples we use in class. A full project proposal, with questions and identified data sources, will be due later in the quarter. For now, please submit a .Rmd file saved as “LASTNAME_ProjectTopic.Rmd”. Include the following:
+
+# General topic of interest in relation to the Oregon Bee Atlas databases
+I am interested in looking at the relationship between air quality and bee populations in Oregon. Specifically, I am interested in looking at the effect of forest fires on the plant and bee populations in Oregon.
+
+# Potential questions within that topic area
+- Does the diversity of bee species change after a forest fire?
+- Are there certain bee/plant species that are more likely to be found in areas that have been affected by forest fires?
+- Does the bee - plant interaction network change after a forest fire?
+
+# Potential additional datasets within that topic area
+EPA's CMAQ data (Community Multiscale Air Quality Modeling System (CMAQ))
+https://www.epa.gov/cmaq/forms/cmaq-data 
+
+Climate data: https://prism.oregonstate.edu/
+
+Vegetation communities: https://inr.oregonstate.edu/our-products/maps
+
+Oregon spatial data library: https://spatialdata.oregonexplorer.info/geoportal/imagery 
+
+Oregon Department of Forestry: https://www.oregon.gov/odf/Pages/index.aspx, Fire data - https://www.oregon.gov/odf/fire/pages/firestats.aspx
