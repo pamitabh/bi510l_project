@@ -31,7 +31,7 @@ Import the OBA data from 2018 and 2019 what you favorite parsing function (in th
 # Excersize 1.1
 ```{r}
 getwd()
-setwd("/home/piyush/Dropbox/Academics/BI510L Data Sci in R/BI510L Data Sci in R_code/5_OBA_spatial")
+setwd("/home/piyush/Dropbox/Academics/BI510L Data Sci in R/BI510L Data Sci in R_code/bi510l_project")
 oba_2018 <- read.csv("data/2018_occurrence.csv")
 oba_2019 <- read.csv("./data/2019_occurrence.csv")
 colnames(oba_2018)
@@ -214,7 +214,8 @@ head(or_map_with_population_df)
 
 plot_or_w_county +
   ggtitle(glue("Map of Oregon with Population by County")) +
-  geom_polygon(data = or_map_with_population_df, aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white") +
+  geom_polygon(data = or_map_with_population_df, 
+  aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white") +
   scale_fill_continuous(trans = "log10", type = "viridis")
 coord_sf(datum = sf::st_crs(4326))
 ```
@@ -240,7 +241,7 @@ ggplot() +
   geom_segment(aes(x = -118.4, y = 42.3, xend = -117.21, yend = 42.3), linewidth = 4) +
   annotate("text", x = -117.8, y = 42.43, label = "100 km", size = 4) +
   labs(color = "", caption = "\n\nTrend: Counties with higher population have a higher incidence of finding this bee\n
-       This can be either because the counties with higher population have a sampling bias or \n
+       This can be because the counties with higher population have a sampling bias or \n
        the plant that this bee prefers is found near human settlements more than the wild") +
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle(glue("Map of *{spirit_bee}* Locations with Plant and County Population info"))
