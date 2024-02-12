@@ -1,0 +1,251 @@
+---
+title: "Exploring bee-related spatial data"
+author: "Piyush Amitabh"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+<!-- Lesson Overview -->
+
+# Conservation/ecology Topics 
+
+> - Species distributions 
+
+# Computational Topics
+> -  Convert a data frame to a spatial object.
+> -  Plot multiple spatial layers using
+
+-------------------------------
+```{r load-libraries, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
+library(terra)
+library(tidyverse)
+library(glue)
+library(sf)
+```
+
+# Oregon bee atlas data exploration 
+
+Import the OBA data from 2018 and 2019 what you favorite parsing function (in the data folder of this lab's zip, converted to a .csv)
+
+# Excersize 1.1
+```{r}
+getwd()
+setwd("/home/piyush/Dropbox/Academics/BI510L Data Sci in R/BI510L Data Sci in R_code/5_OBA_spatial")
+oba_2018 <- read.csv("data/2018_occurrence.csv")
+oba_2019 <- read.csv("./data/2019_occurrence.csv")
+colnames(oba_2018)
+```
+
+# Excersize 1.2
+It will be cumbersome to deal with each dataframe individually. Are the column names in the identical order
+such that you could use `rbind()` (row bind) to bind them together? Some combination of the functions `colnames()`, `identical()`
+
+```{r}
+cat("The colnames are identical:", identical(colnames(oba_2018), colnames(oba_2019)))
+oba_2018_2019 <- rbind(oba_2018, oba_2019)
+```
+
+# Excersize 1.3
+Find the column related to a specimens species ID. Use `sort()` and `unique()` to print the unique values in alphabetical order.  How many species are there? 
+
+```{r}
+colnames(oba_2018_2019)
+species_list <- oba_2018_2019 %>%
+  filter(species != "", !is.na(species)) %>%
+  pull(species) %>%
+  unique() %>%
+  sort()
+species_list
+```
+```{r}
+length(species_list)
+```
+
+Some specimens are not identified to species, only genus. How is this reflected in the data? 
+
+
+# Excersize 1.4
+So many bees, so little time. Count up the occurrences of each bee species, and subset the data to bees that have been seen at least two times. 
+You can use the tidyverse or any other functions in R that you like. How many species are there? 
+
+```{r}
+occurrence_counts <- oba_2018_2019 %>%
+  filter(species != "", !is.na(species)) %>%
+  group_by(species) %>%
+  summarise(count = n()) %>%
+  filter(count >= 2)
+
+num_species <- nrow(occurrence_counts)
+num_species
+```
+
+Google a few bee names (that have been seen > 2 times) and find one with an a look that resonates with you.
+
+What is the name of your bee? 
+```{r}
+set.seed(123) # Add this line to set a seed for the sample function
+occurrence_counts[sample(nrow(occurrence_counts), 1), ]
+```
+Megachile fidelis: cute bee with pollen all over!
+
+Import the photos into Rmarkdown below (hint: googling bee name "discover life" or "inat" can often get you a photo. Many bees will no have any photos :( 
+![Megachile fidelis](https://www.discoverlife.org/IM/I_SD/0109/mx/Megachile_fidelis,I_SD10962.jpg)
+
+# Excersize 2.1
+How that have chosen your spirit bee, we would like to plot it's distribution. What is the crs of the data? Hint: it is the same as what inat uses because all bees have a georeferenced plant host. If the data is in lat long, it is "unprojected" so only a datum will be listed. 
+
+```{r}
+unique(oba_2018_2019$issue)
+```
+
+# Excersize 2.2. 
+Extract the X and Y locations for your species only from the data and create a spatial object. Don't forget to set the CRS! Hint 1: consider what other data you would like to keep as attributes, for example what flower they were foraging on. Hint 2: Remember the lat is y and long is x. 
+
+```{r}
+spirit_bee <- "Megachile fidelis"
+species_data <- oba_2018_2019 %>%
+  filter(species == spirit_bee) %>%
+  select(x = decimalLongitude, y = decimalLatitude, associatedTaxa)
+head(species_data)
+
+species_data <- species_data %>%
+  mutate(associatedTaxa = str_split(associatedTaxa, ":", simplify = TRUE)[, 2]) %>%
+  mutate(associatedTaxa = replace(associatedTaxa, associatedTaxa == "", "no associated plant"))
+head(species_data)
+
+species_spatial <- st_as_sf(species_data, coords = c("x", "y"), crs = "WGS84")
+(species_spatial)
+```
+
+# Excersize 2.3
+Plot your exciting bee data!
+
+```{r plot-data-points}
+# doesn't run in vscode, knit in rstudio for final submission
+ggplot() +
+  geom_sf(data = species_spatial, color = "darkorange", alpha = 0.8) +
+  ggtitle(glue("Map of {spirit_bee} Locations"))
+```
+
+Not so exciting without some kind of background... 
+
+# Excersize 2.4
+Luckily we can download basemaps into R using the map_data function in ggplot (amoung many others). There is an example for retrieving the Oregon county polygons. 
+
+```{r plot-or}
+# get Oregon map
+or_map_base_df <- map_data("state") %>%
+  filter(region == "oregon") %>%
+  select(longitude = long, latitude = lat, group_id = group, state_name = region)
+str(or_map_base_df)
+
+or_map_county_df <- map_data("county", "oregon") %>%
+  select(longitude = long, latitude = lat, group_id = group, county_name = subregion)
+str(or_map_county_df)
+
+# plot Oregon map with bee location overlaid
+plot_or_w_county <- ggplot() +
+  geom_polygon(
+    data = or_map_county_df, fill = "lightgray", color = "white",
+    aes(x = longitude, y = latitude, group = county_name)
+  ) +
+  geom_polygon(
+    data = or_map_base_df, fill = NA, color = "black",
+    aes(x = longitude, y = latitude, group = state_name)
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+plot_or_w_county +
+  ggtitle(glue("Map of Oregon with County Boundaries")) +
+  coord_quickmap()
+```
+
+Add your species's points to your choice or an Oregon basemap. 
+
+```{r plot-data-points-basemap}
+# plot oregon map with bee location overlaid
+plot_or_w_county +
+  geom_sf(data = species_spatial, color = "darkorange", alpha = 0.6, size = 3) +
+  ggtitle(glue("Map of *{spirit_bee}* Locations"))
+```
+# Excersize 2.5
+
+Here is your moment to explore your cartographic skills. 
+
+* 1. Add another spatial layer relevant to your final project and tweak the Oregon map in anyway that is useful/visually appealing. You may need to crop that layer to the extent of your species's distribution. 
+DONE
+
+* 2. Color your points according to some data attribute and add a legend (month collected, county, collector, associated plant, whatever you think is interesting). You may need to circle back to 2.1 to save additional attributes when you converted the data frame to a spatial object. 
+DONE
+
+* 3. Fine-tune your map: add a title, make sure the legend label makes sense, add a scale bar (google "add scale bar map ggplot" and choose your favorite package). All maps must always have a scale bar. You can add a N arrow as well, though some cartographers argue that is only necessary if N isn't at the top of the map.
+TODO
+
+* 4. Write a figure caption for your map explaining any interesting trends you see. 
+DONE
+
+* 5. Export you cropped layer to a .shp so you can use it again for your final project.
+Not applicable
+
+* 6. Push this lab to your github repo (just the .Rmd, don't push the data!)
+DONE
+
+```{r get-or-demographic-data}
+# data taken from https://www.oregon-demographics.com/counties_by_population
+
+# make a data frame
+or_dem <- readxl::read_xlsx("./data/oregon_demographics_by_county.xlsx", skip = 4, col_names = TRUE)
+head(or_dem)
+colnames(or_dem)
+
+# select only two columns, remove oregon total population, add 'county' col, convert everything to lowercase
+or_pop_by_county_df <- or_dem %>%
+  select(name, population) %>%
+  filter(name != "Oregon") %>%
+  mutate(county_name = tolower(str_replace(name, " County$", ""))) %>%
+  select(-name)
+
+head(or_pop_by_county_df)
+head(or_map_county_df)
+
+# now the county_name in or_pop_by_county_df corresponds to or_map_county_df, join them in a single df
+or_map_with_population_df <- left_join(or_map_county_df, or_pop_by_county_df, by = "county_name")
+head(or_map_with_population_df)
+
+plot_or_w_county +
+  ggtitle(glue("Map of Oregon with Population by County")) +
+  geom_polygon(data = or_map_with_population_df, aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white") +
+  scale_fill_continuous(trans = "log10", type = "viridis")
+coord_sf(datum = sf::st_crs(4326))
+```
+
+```{r plot-creative, fig.align='center', fig.height=5, fig.width=8}
+ggplot() +
+  geom_polygon(
+    data = or_map_county_df, fill = "lightgray", color = "white",
+    aes(x = longitude, y = latitude, group = county_name)
+  ) +
+  geom_polygon(
+    data = or_map_with_population_df,
+    aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white"
+  ) +
+  scale_fill_gradient(trans = "log10", low = "antiquewhite1", high = "antiquewhite4") +
+  # scale_fill_gradient(trans = "log10", low = "wheat1", high = "wheat4") +
+  # scale_fill_gradient(trans = "log10", low = "azure", high = "azure4") +
+  geom_polygon(
+    data = or_map_base_df, fill = NA, color = "black",
+    aes(x = longitude, y = latitude, group = state_name)
+  ) +
+  geom_sf(data = species_spatial, aes(color = associatedTaxa), alpha = 0.6, size = 3) +
+  geom_segment(aes(x = -118.4, y = 42.3, xend = -117.21, yend = 42.3), linewidth = 4) +
+  annotate("text", x = -117.8, y = 42.43, label = "100 km", size = 4) +
+  labs(color = "", caption = "\n\nTrend: Counties with higher population have a higher incidence of finding this bee\n
+       This can be either because the counties with higher population have a sampling bias or \n
+       the plant that this bee prefers is found near human settlements more than the wild") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle(glue("Map of *{spirit_bee}* Locations with Plant and County Population info"))
+```
+
+```{r}
+print("thanks!")
+```
