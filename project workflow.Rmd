@@ -1,0 +1,72 @@
+---
+title: "Project workflow"
+author: "Piyush Amitabh"
+date: '2024-02-20'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**Title: Understanding Bee-Plant Interactions: A Multi-Dimensional Analysis**
+
+**Introduction:**
+
+Animal pollinators, particularly bees, play a crucial role in the production of major global food crops (Klein et al., 2007) and maintaining ecosystem health and biodiversity by facilitating plant reproduction through pollination (Biesmeijer et al., 2006). Understanding the dynamics of bee-plant interactions is essential for conservation efforts, agricultural productivity, sustainable development and ecosystem resilience (Patel et al., 2021, Huang et al., 2021). 
+
+In this study, we utilize the Oregon Bee Atlas (OBA) dataset which is a citizen science project in which trained volunteers catch bee species around Oregon which is then verified by experts before logging its information and preserving the specimen (Best et al., 2021, 2022). This dataset covers the state of Oregon in the Pacific Northwest of the US, spanning two years (2018-2019) and includes information on bee species, the plants they were foraging on, date caught, and sex. Combined with other open datasets, OBA can provide a valuable opportunity to explore various aspects of bee-plant interactions and their implications for ecosystem functioning.
+
+**Research Questions Using the Dataset:**
+
+1. **Basic Species Distribution and Abundance:** We aim to identify the most commonly observed bee species and examine their distribution across different plant species. Additionally, we will assess trends in bee abundance over the two-year period.
+
+2. **Seasonal Patterns:** We will investigate seasonal patterns in bee activity and abundance, as well as differences in foraging patterns between bee species and attractive plant species during specific seasons.
+
+3. **Foraging Preferences:** By analyzing the dataset, we seek to determine whether certain bee species preferentially forage on specific plant species and whether there are differences in foraging preferences between male and female bees.
+
+4. **Sexual Dimorphism and Foraging Behavior:** We will explore differences in foraging behavior between male and female bees and investigate whether they forage on different plant species.
+
+5. **Temporal Changes:** Our analysis will focus on identifying changes in bee species composition or abundance over the two-year period and any changes in the plant species that bees are foraging on over time.
+
+6. **Identification of Keystone Plant Species:** Using simulation models, we will assess the potential consequences of the extinction of different plant species, identifying the keystone plant species that are most critical for supporting bee populations. This analysis will involve simulating the removal of these plant species from the ecosystem and evaluating the impact on bee species richness, abundance, and diversity.
+
+**Research Questions Using Additional Open Datasets:**
+
+1. **Climate and Foraging Patterns:** By integrating climate data, we aim to understand how climatic factors influence bee foraging behavior and whether there are changes in foraging patterns in response to climate variability. This analysis will involve data from sources such as the National Climatic Data Center (NCDC) (https://www.ncdc.noaa.gov/) for climate data (Parmesan et al., 2003).
+
+2. **Land Use and Foraging Behavior:** We will investigate the impact of land use (e.g., urbanization, agriculture) on bee foraging preferences and abundance, as well as differences in bee foraging behavior between different types of land use. This analysis will involve data from sources such as the United States Geological Survey (USGS) (https://www.usgs.gov/) for land use data.
+
+3. **Pollinator Network Analysis:** Through the construction of a plant-pollinator network using additional datasets, we will visualize the interactions between bee species and plant species and analyze how the network structure changes over time or in response to environmental factors. This analysis will involve data from sources such as the Global Biodiversity Information Facility (GBIF) (https://www.gbif.org/) for pollinator occurrence records (Pocock et al., 2012).
+
+4. **Conservation and Management:** Our analysis will identify plant species that are crucial for supporting bee populations and recommend conservation actions. Additionally, we will examine how changes in land use or climate impact the availability of floral resources for bees.
+
+In conclusion, this study aims to provide a comprehensive analysis of bee-plant interactions using a multi-dimensional approach, combining primary dataset analysis with additional open datasets. The findings will contribute to our understanding of the complex relationships between bees and plants. This is particularly important now in Oregon as the incidences of forest fires have increased in past five years, so a new multifaceted strategy can be employed in the reestablishment of burnt lands which both provide a more wildfire resistant foliage as well as maintain pollinator diversity and ecosystem health.
+
+**Workflow**
+
+The workflow for our project will closely follow the research questions listed above - we will first start by cleaning the OBA dataset and performing analysis on that before using it in conjunction with other open source datasets to draw further conclusions. We will use the data cleaning steps as outlined in Dorey et al., 2023.
+
+
+---
+
+*References:*
+
+- Alexandra‐Maria Klein,Alexandra-Maria Klein,Bernard Vaissière,Bernard E. Vaissière,James H. Cane,James H. Cane,James H. Cane,Ingolf Steffan‐Dewenter,Ingolf Steffan-Dewenter,Saul A. Cunningham,Saul A. Cunningham,Claire Kremen,Claire Kremen,Teja Tscharntke,Teja Tscharntke (2007). Importance of pollinators in changing landscapes for world crops. Proceedings of The Royal Society B: Biological Sciences, 274(1606), 303-313. https://doi.org/10.1098/rspb.2006.3721
+
+- Best, L., Marshall, C. J., Feuerborn, C., Kincaid, S., Melathopoulos, A., & Robinson, S. V. J. (2021). Oregon Bee Atlas: native bee findings from 2018. Catalog: Oregon State Arthropod Collection, 5(1). https://doi.org/10.5399/osu/cat_osac.5.1.4647.
+
+- Best, L., Engler, J., Feuerborn, C., Larsen, J., Lindh, B., Marshall, C. J., Melathopoulos, A., Kincaid, S., & Robinson, S. V. J. (2022). Oregon Bee Atlas: Wild bee findings from 2019. Catalog of the Oregon State Arthropod Collection, 6(1), 1-13. http://dx.doi.org/10.5399/osu/cat_osac.6.1.4906.
+
+- Biesmeijer JC, Roberts SP, Reemer M, Ohlemüller R, Edwards M, Peeters T, Schaffers AP, Potts SG, Kleukers R, Thomas CD, Settele J, Kunin WE. Parallel declines in pollinators and insect-pollinated plants in Britain and the Netherlands. Science. 2006 Jul 21;313(5785):351-4. doi: 10.1126/science.1127863. PMID: 16857940.
+
+- Patel V, Pauli N, Biggs E, Barbour L, Boruff B. Why bees are critical for achieving sustainable development. Ambio. 2021 Jan;50(1):49-59. doi: 10.1007/s13280-020-01333-9. Epub 2020 Apr 20. PMID: 32314266; PMCID: PMC7708548.
+
+- Huang, Eng, Tu, Chengyi, & D'Odorico, Paolo. (2021). Ecosystem complexity enhances the resilience of plant-pollinator systems. One Earth, 4(9), 1286-1296. https://doi.org/10.1016/j.oneear.2021.08.008.
+
+- Parmesan, C. (2006). Ecological and evolutionary responses to recent climate change. *Annual Review of Ecology, Evolution, and Systematics, 37*(1), 637-669. https://doi.org/10.1146/annurev.ecolsys.37.091305.110100
+
+- Michael J. O. Pocock, Helen E. Roy, Chris D. Preston, David B. Roy, The Biological Records Centre: a pioneer of citizen science, Biological Journal of the Linnean Society, Volume 115, Issue 3, July 2015, Pages 475–493, https://doi.org/10.1111/bij.12548.
+
+- Dorey, J.B., Fischer, E.E., Chesshire, P.R. et al. A globally synthesised and flagged bee occurrence dataset and cleaning workflow. Sci Data 10, 747 (2023). https://doi.org/10.1038/s41597-023-02626-w
