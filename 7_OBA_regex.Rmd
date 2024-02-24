@@ -1,0 +1,273 @@
+---
+title: "Using regular expressions"
+output: html_document
+author:
+  - Lauren Ponisio
+  - Piyush Amitabh
+---
+
+<!-- Lesson Overview -->
+
+# Conservation/ecology Topics 
+
+> - Species distributions 
+
+# Computational Topics
+> -  Use regular expressions to clean and catagorize data
+
+-------------------------------
+```{r load-libraries, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(igraph)
+library(networkD3) # nolint: object_name_linter
+library(glue)
+```
+
+# Oregon bee atlas data exploration 
+
+Import the OBA data from 2018 and 2019 what your favorite parsing function, and bind together the two years of data (as in lab 5). Call the compiled data oba_2018_2019. 
+
+# Exercise 1.1
+```{r}
+getwd()
+setwd("/home/piyush/Dropbox/Academics/BI510L Data Sci in R/BI510L Data Sci in R_code/bi510l_project")
+oba_2018 <- read.csv("data/2018_occurrence.csv")
+oba_2019 <- read.csv("data/2019_occurrence.csv")
+cat("The colnames are identical:", identical(colnames(oba_2018), colnames(oba_2019)))
+oba_2018_2019 <- rbind(oba_2018, oba_2019)
+```
+
+Examine the unique entries of 'associatedTaxa'. What are at least two patterns in the associated taxa string what should be removed if we want consistent plant names? 
+
+1. sometimes "\"foraging on\" : and sometimes "foraging on\" : 
+2. \" before and after the plant name 
+
+```{r}
+sample(oba_2018_2019$associatedTaxa, size = 10)
+```
+
+# Exercise 1.2
+
+In lecture I used a brute force pattern to remove some of these issues. Now that we are familiar with regular expressions we can do better. 
+Resolve all of the issues with the associated taxa column in *at most two* calls to `gsub()` or any function that uses regular expressions. You reassign the contents of the column associatedTaxa or create a new column. Return the sorted, unique values, ex: sort(unique(oba_2018_2019associatedTaxa))
+
+Hint: You must \ any special characters. For example to use \s (matches any space, tab, or newline) you must use \\s in your pattern.
+
+```{r}
+# using regex to select for the pattern to keep rather than the pattern to drop
+# noticed that the plant name is always bounded by the second double quotes ""
+
+# Define the regex pattern
+pattern <- '(.*)"(?<plant>.*)"$'
+
+# Use str_match() to extract the match
+match <- str_match(oba_2018_2019$associatedTaxa, pattern)
+plant_name_list <- match[, "plant"]
+plant_name_list[is.na(plant_name_list)] <- ""
+oba_2018_2019$associatedTaxa <- plant_name_list
+sample(oba_2018_2019$associatedTaxa, size = 10)
+```
+
+Examining the unique plant taxa, "Weedy" and "Weedy yellow comp." popped out as other problems. In addition, some have two plant species separated by a ";". Since we cannot really do much with the second species and leaving it will cause that species combination to be treated like a species, we will drop the second plant.  
+
+We used `gsub` above to match a pattern and replace it with something else. `gsub` is part of a family of regex functions, including `grep`, see ?grep for all of the options. `strsplit` is a related function that splits a string at a character or pattern.
+
+Below is an example of using grepl to find the elements of associated taxa that have a ";", then using strsplit to split those strings at the ";". Strplit returns a list with the split string as seperate elements. Lastly sapply (smart apply) applies the mini function that grabs the first element from the list strsplit created. 
+
+```{r}
+cat("We have these many weeds:", sum(grepl("Weedy", oba_2018_2019$associatedTaxa)), "\n")
+oba_2018_2019$associatedTaxa <- gsub("Weedy yellow comp.", "", oba_2018_2019$associatedTaxa)
+oba_2018_2019$associatedTaxa <- gsub("Weedy", "", oba_2018_2019$associatedTaxa)
+cat("Now we have these many weeds:", sum(grepl("Weedy", oba_2018_2019$associatedTaxa)), "\n")
+
+# get rid of ;
+cat("We have these many ';'", sum(grepl(";", oba_2018_2019$associatedTaxa)), "\n")
+oba_2018_2019$associatedTaxa[grepl(";", oba_2018_2019$associatedTaxa)] <- sapply(
+  strsplit(
+    oba_2018_2019$associatedTaxa[grepl(";", oba_2018_2019$associatedTaxa)], ";"
+    ),
+  function(x) x[1]
+  )
+cat("We have these many ';'", sum(grepl(";", oba_2018_2019$associatedTaxa)), "\n")
+```
+
+
+# Exercise 2.1
+Some plant species are resolved to species/subspecies, others to genus and others to family. If there are two or three words, we can assume the plant is resolved to species and subspecies, respectively. If there is only one word, this could be a genus or a family name. Family names always end in "aceae", for example Lamiaceae (mints), Asteraceae (daisies). 
+
+
+We want to make a new column called plantResolution and assign it to "Family", "Genus" or "Species" depending on the level of resolution associated taxa is resolved to. We will do this in two steps. 
+
+First use regular expressions to count up the number of words in each element of associated taxa. Assign the count to a new column called plantTaxaWordCount. Print the first 10 elements.
+
+Hint: `gregexpr` may be useful, or `strsplit` in combination with `sapply` or a for loop. 
+Hint hint: Don't forget to consider empty strings (i.e., no plant taxa). 
+
+
+```{r}
+oba_2018_2019$plantTaxaWordCount <- str_count(oba_2018_2019$associatedTaxa, "\\w+")
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+summary(oba_2018_2019$plantTaxaWordCount)
+```
+
+# Exercise 2.2
+Write a for loop to assigned each entry of the column plantResolution to be "family", "genus" or "species". `table()` the final result. If there is no associated taxa, assign the value to be NA. 
+Hint: Don't forget to initialize the new column. Starting with all NAs may be useful. 
+Hint hint: The function `ifelse` returns one value if a TRUE and another if FALSE. It could be useful depending on your approach. 
+Hint hint hint: `grepl` will return or TRUE or FALSE depending on whether it finds the pattern. 
+
+```{r}
+plant_resolution_list <- rep(NA, nrow(oba_2018_2019))
+
+for (i in seq_along(plant_resolution_list)) {
+  word_count <- oba_2018_2019$plantTaxaWordCount[i]
+  plant_name <- oba_2018_2019$associatedTaxa[i]
+
+  if (word_count == 1) { # can be genus or family
+    if (grepl("aceae$", plant_name)) { # family
+      plant_resolution_list[i] <- "family"
+    } else {
+      plant_resolution_list[i] <- "genus"
+    }
+  } else if (word_count > 1) { # it is species/subspecies
+    plant_resolution_list[i] <- "species"
+  }
+}
+oba_2018_2019$plantResolution <- plant_resolution_list
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+head(oba_2018_2019$plantResolution, 10)
+```
+
+# Exercise 2.3
+Create a new column called plantGenus that is the genus if the associated taxa was resolved to species or genus, and NA if it was resolved to family. 
+```{r}
+plant_genus_list <- rep(NA, nrow(oba_2018_2019))
+
+for (i in seq_along(plant_genus_list)) {
+  plant_res <- oba_2018_2019$plantResolution[i]
+  plant_name <- oba_2018_2019$associatedTaxa[i]
+
+  if (!is.na(plant_res) && (plant_res == "genus")) {
+    plant_genus_list[i] <- plant_name
+  } else if (!is.na(plant_res) && (plant_res == "species")) {
+    plant_genus_list[i] <- strsplit(plant_name, " ")[[1]][1]
+  }
+}
+
+oba_2018_2019$plantGenus <- plant_genus_list
+
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+head(oba_2018_2019$plantResolution, 10)
+head(oba_2018_2019$plantGenus, 10)
+```
+
+# Exercise 3.1
+Choose a genus other than Bombus with at least 10 species. Create a network for all the species of that bee genus, and their species-level plant interactions. Plot the networks with bee species as only color, and plants as another. 
+
+```{r}
+result <- oba_2018_2019 %>%
+  filter(specificEpithet != "") %>%
+  distinct(genericName, specificEpithet) %>%
+  group_by(genericName) %>%
+  summarise(species_count = n())
+print(result, n = 37)
+```
+
+Plot using igraph
+```{r}
+# Picking genera "Coelioxys"
+
+# Filter the data frame for the chosen genus and species-level plant interactions
+bee_genus_name <- "Coelioxys"
+filtered_df <- oba_2018_2019 %>%
+  filter(
+    genericName == bee_genus_name,
+    specificEpithet != "",
+    plantResolution == "species"
+  )
+
+# Create an edge list for the network
+edge_list <- filtered_df %>%
+  select(specificEpithet, associatedTaxa)
+
+# Create a graph from the edge list
+g <- graph_from_data_frame(edge_list, directed = FALSE)
+
+# Plot the network
+plot(g,
+  vertex.color = ifelse(V(g)$name %in% filtered_df$specificEpithet, "mediumaquamarine", "lightcoral"),
+  vertex.label.color = "gray25",
+  main = glue("Bee Genus: {bee_genus_name} - Plant Species interactions")
+)
+```
+
+Plot using forcefield network
+```{r}
+# Create a node data frame
+nodes <- data.frame(
+  name = unique(c(filtered_df$specificEpithet, filtered_df$associatedTaxa)),
+  group = c(
+    rep(1, length(unique(filtered_df$specificEpithet))),
+    rep(2, length(unique(filtered_df$associatedTaxa)))
+  )
+)
+
+# Create an edge data frame
+edges <- filtered_df %>%
+  select(source = specificEpithet, target = associatedTaxa) %>%
+  mutate(
+    source = match(source, nodes$name) - 1,
+    target = match(target, nodes$name) - 1
+  )
+
+# Create a network plot
+forceNetwork(
+  Links = edges, Nodes = nodes, Source = "source",
+  Target = "target", NodeID = "name", Group = "group",
+  fontSize = 12, opacity = 0.9
+)
+```
+
+# Exercise 3.2
+
+Create a network for the bee species-plant genus interactions. Plot the networks with bee species as one color, and plants as another. 
+
+static igraph isn't good for this interaction
+
+force field graph
+```{r}
+filtered_df <- oba_2018_2019 %>%
+  filter(
+    specificEpithet != "",
+    !is.na(plantGenus)
+  )
+
+# Create a node data frame
+nodes <- data.frame(
+  name = unique(c(filtered_df$specificEpithet, filtered_df$plantGenus)),
+  group = c(
+    rep(1, length(unique(filtered_df$specificEpithet))),
+    rep(2, length(unique(filtered_df$plantGenus)))
+  )
+)
+
+# Create an edge data frame
+edges <- filtered_df %>%
+  select(source = specificEpithet, target = plantGenus) %>%
+  mutate(
+    source = match(source, nodes$name) - 1,
+    target = match(target, nodes$name) - 1
+  )
+
+# Create a network plot
+forceNetwork(
+  Links = edges, Nodes = nodes, Source = "source",
+  Target = "target", NodeID = "name", Group = "group",
+  fontSize = 12, opacity = 0.9
+)
+```
