@@ -22,15 +22,15 @@ In this study, we utilize the Oregon Bee Atlas (OBA) dataset which is a citizen 
 
 1. **Basic Species Distribution and Abundance:** We aim to identify the most commonly observed bee species and examine their distribution across different plant species. Additionally, we will assess trends in bee abundance over the two-year period.
 
-2. **Seasonal Patterns:** We will investigate seasonal patterns in bee activity and abundance, as well as differences in foraging patterns between bee species and attractive plant species during specific seasons.
+2. **Temporal Changes and Seasonal Patterns:** We will investigate general temporal and seasonal patterns in bee/plant abundance and foraging activity during these two years.
 
-3. **Foraging Preferences:** By analyzing the dataset, we seek to determine whether certain bee species preferentially forage on specific plant species and whether there are differences in foraging preferences between male and female bees.
+3. **Foraging Preferences by Bee species:** By analyzing the dataset, we seek to determine whether certain bee species preferentially forage on specific plant species.
 
 4. **Sexual Dimorphism and Foraging Behavior:** We will explore differences in foraging behavior between male and female bees and investigate whether they forage on different plant species.
 
-5. **Temporal Changes:** Our analysis will focus on identifying changes in bee species composition or abundance over the two-year period and any changes in the plant species that bees are foraging on over time.
+5. **Identification of Keystone Plant Species:** Using simulation models, we will assess the potential consequences of the extinction of different plant species, identifying the keystone plant species that are most critical for supporting bee populations. This analysis will involve simulating the removal of these plant species from the ecosystem and evaluating the impact on bee species richness, abundance, and diversity.
 
-6. **Identification of Keystone Plant Species:** Using simulation models, we will assess the potential consequences of the extinction of different plant species, identifying the keystone plant species that are most critical for supporting bee populations. This analysis will involve simulating the removal of these plant species from the ecosystem and evaluating the impact on bee species richness, abundance, and diversity.
+6. **Pollinator Network Analysis:** Through the construction of a plant-pollinator network using additional datasets, we will visualize the interactions between bee species and plant species and analyze how the network structure changes over time or in response to environmental factors. This analysis will involve data from sources such as the Global Biodiversity Information Facility (GBIF) (https://www.gbif.org/) for pollinator occurrence records (Pocock et al., 2012).
 
 **Research Questions Using Additional Open Datasets:**
 
@@ -38,9 +38,9 @@ In this study, we utilize the Oregon Bee Atlas (OBA) dataset which is a citizen 
 
 2. **Land Use and Foraging Behavior:** We will investigate the impact of land use (e.g., urbanization, agriculture) on bee foraging preferences and abundance, as well as differences in bee foraging behavior between different types of land use. This analysis will involve data from sources such as the United States Geological Survey (USGS) (https://www.usgs.gov/) for land use data.
 
-3. **Pollinator Network Analysis:** Through the construction of a plant-pollinator network using additional datasets, we will visualize the interactions between bee species and plant species and analyze how the network structure changes over time or in response to environmental factors. This analysis will involve data from sources such as the Global Biodiversity Information Facility (GBIF) (https://www.gbif.org/) for pollinator occurrence records (Pocock et al., 2012).
+3. **Population and Bee occurances:** We will investigate the impact of population on bee and plant availability. Potentially highlighting the sampling bias of this dataset.
 
-4. **Conservation and Management:** Our analysis will identify plant species that are crucial for supporting bee populations and recommend conservation actions. Additionally, we will examine how changes in land use or climate impact the availability of floral resources for bees.
+4. **Conservation and Management:** Using IUCN lists to identigy bee and plant species at risk, we will see the above analysis for these endangered species. 
 
 In conclusion, this study aims to provide a comprehensive analysis of bee-plant interactions using a multi-dimensional approach, combining primary dataset analysis with additional open datasets. The findings will contribute to our understanding of the complex relationships between bees and plants. This is particularly important now in Oregon as the incidences of forest fires have increased in the past decade. A new multifaceted strategy can be employed in the reestablishment of burnt lands which can not only provide a wildfire resistant foliage but also maintain plant diversity.
 
