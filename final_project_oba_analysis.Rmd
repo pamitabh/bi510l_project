@@ -1,0 +1,523 @@
+---
+title: "Remaining Analysis steps for the final project"
+output: html_document
+author:
+  - Piyush Amitabh
+---
+
+<!-- Lesson Overview -->
+
+# Topics explored in this pdf_document
+
+1.  **Sexual Dimorphism and Foraging Behavior:** 
+We will explore differences in foraging behavior between male and female bees and investigate whether they forage on different plant species. 
+
+2. **Identification of Keystone Plant Species:** Using simulation models, we will assess the potential consequences of the extinction of different plant species, identifying the keystone plant species that are most critical for supporting bee populations. This analysis will involve simulating the removal of these plant species from the ecosystem and evaluating the impact on bee species richness, abundance, and diversity.
+
+3. **Climate and Foraging Patterns:** By integrating climate data, we aim to understand how climatic factors influence bee foraging behavior and whether there are changes in foraging patterns in response to climate variability. This analysis will involve data from sources such as the National Climatic Data Center (NCDC) (https://www.ncdc.noaa.gov/) for climate data (Parmesan et al., 2003).
+
+-------------------------------
+```{r load-libraries, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(igraph)
+library(networkD3) # nolint: object_name_linter
+library(glue)
+```
+
+# Import OBA datasets
+```{r}
+getwd()
+setwd("/home/piyush/Dropbox/Academics/BI510L Data Sci in R/BI510L Data Sci in R_code/bi510l_project")
+oba_2018 <- read.csv("data/2018_occurrence.csv")
+oba_2019 <- read.csv("data/2019_occurrence.csv")
+cat("The colnames are identical:", identical(colnames(oba_2018), colnames(oba_2019)))
+oba_2018_2019 <- rbind(oba_2018, oba_2019)
+head(oba_2018_2019, 3)
+```
+
+# Clean dataset using regex
+I will clean and update the associatedTaxa column which is supposed to have the plant name
+
+## 1. Only keep the plant names in the string 
+```{r}
+sample(oba_2018_2019$associatedTaxa, size = 10)
+
+# using regex to select for the pattern to keep rather than the pattern to drop
+# noticed that the plant name is always bounded by the second double quotes ""
+
+# Define the regex pattern
+pattern <- '(.*)"(?<plant>.*)"$'
+
+# Use str_match() to extract the match
+match <- str_match(oba_2018_2019$associatedTaxa, pattern)
+plant_name_list <- match[, "plant"]
+plant_name_list[is.na(plant_name_list)] <- ""
+oba_2018_2019$associatedTaxa <- plant_name_list
+sample(oba_2018_2019$associatedTaxa, size = 10)
+```
+
+## 2. Remove all weed names and keep only one plant name
+```{r}
+cat("We have these many weeds:", sum(grepl("Weedy", oba_2018_2019$associatedTaxa)), "\n")
+oba_2018_2019$associatedTaxa <- gsub("Weedy yellow comp.", "", oba_2018_2019$associatedTaxa)
+oba_2018_2019$associatedTaxa <- gsub("Weedy", "", oba_2018_2019$associatedTaxa)
+cat("Now we have these many weeds:", sum(grepl("Weedy", oba_2018_2019$associatedTaxa)), "\n")
+
+# get rid of ;
+cat("We have these many ';'", sum(grepl(";", oba_2018_2019$associatedTaxa)), "\n")
+oba_2018_2019$associatedTaxa[grepl(";", oba_2018_2019$associatedTaxa)] <- sapply(
+    strsplit(
+        oba_2018_2019$associatedTaxa[grepl(";", oba_2018_2019$associatedTaxa)], ";"
+    ),
+    function(x) x[1]
+)
+cat("We have these many ';'", sum(grepl(";", oba_2018_2019$associatedTaxa)), "\n")
+```
+
+# Add more information
+
+## 1. Add plant resolution
+We want to make a new column called plantResolution and assign it to "Family", "Genus" or "Species" depending on the level of resolution associated taxa is resolved to.
+
+```{r}
+oba_2018_2019$plantTaxaWordCount <- str_count(oba_2018_2019$associatedTaxa, "\\w+")
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+summary(oba_2018_2019$plantTaxaWordCount)
+```
+
+```{r}
+plant_resolution_list <- rep(NA, nrow(oba_2018_2019))
+
+for (i in seq_along(plant_resolution_list)) {
+    word_count <- oba_2018_2019$plantTaxaWordCount[i]
+    plant_name <- oba_2018_2019$associatedTaxa[i]
+
+    if (word_count == 1) { # can be genus or family
+        if (grepl("aceae$", plant_name)) { # family
+            plant_resolution_list[i] <- "family"
+        } else {
+            plant_resolution_list[i] <- "genus"
+        }
+    } else if (word_count > 1) { # it is species/subspecies
+        plant_resolution_list[i] <- "species"
+    }
+}
+oba_2018_2019$plantResolution <- plant_resolution_list
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+head(oba_2018_2019$plantResolution, 10)
+```
+## 2. Add plant genus
+Create a new column called plantGenus that is the genus if the associated taxa was resolved to species or genus, and NA if it was resolved to family. 
+```{r}
+plant_genus_list <- rep(NA, nrow(oba_2018_2019))
+
+for (i in seq_along(plant_genus_list)) {
+    plant_res <- oba_2018_2019$plantResolution[i]
+    plant_name <- oba_2018_2019$associatedTaxa[i]
+
+    if (!is.na(plant_res) && (plant_res == "genus")) {
+        plant_genus_list[i] <- plant_name
+    } else if (!is.na(plant_res) && (plant_res == "species")) {
+        plant_genus_list[i] <- strsplit(plant_name, " ")[[1]][1]
+    }
+}
+
+oba_2018_2019$plantGenus <- plant_genus_list
+
+head(oba_2018_2019$associatedTaxa, 10)
+head(oba_2018_2019$plantTaxaWordCount, 10)
+head(oba_2018_2019$plantResolution, 10)
+head(oba_2018_2019$plantGenus, 10)
+```
+
+
+# Save/Read the new dataframe as csv
+## Drop the columns that we are not going to use
+```{r}
+col_to_save <- c(
+    "gbifID", "genericName", "specificEpithet", "species", "sex",
+    "taxonRank", "eventDate", "year", "month", "samplingProtocol",
+    "associatedTaxa", "county", "decimalLatitude", "decimalLongitude",
+    "plantResolution", "plantGenus"
+)
+oba_2018_2019 <- oba_2018_2019[, col_to_save]
+colnames(oba_2018_2019)
+```
+
+## Save 
+```{r}
+write.csv(oba_2018_2019, "data/cleaned_oba_2018_2019.csv", row.names = FALSE)
+```
+## Read 
+```{r}
+oba_2018_2019 <- read.csv("data/cleaned_oba_2018_2019.csv")
+```
+```{r}
+# check if all values of column gbifID are unique
+unique_gbifID <- length(unique(oba_2018_2019$gbifID))
+total_gbifID <- nrow(oba_2018_2019)
+
+if (unique_gbifID == total_gbifID) {
+    print("All values of column 'gbifID' are unique.")
+} else {
+    print("Not all values of column 'gbifID' are unique.")
+}
+```
+This means we can use gbifID as a unique identifier
+
+# 1. Sexual Dimorphism
+```{r}
+# check the TOTAL PERCENTAGE of MALE vs FEMALE bees caught
+total_male <- sum(oba_2018_2019$sex == "MALE", na.rm = TRUE)
+total_female <- sum(oba_2018_2019$sex == "FEMALE", na.rm = TRUE)
+total_bees <- nrow(oba_2018_2019)
+
+percentage_male <- (total_male / total_bees) * 100
+percentage_female <- (total_female / total_bees) * 100
+
+# Create a data frame for the plot
+sex_per_df <- data.frame(
+    Sex = c("Female", "Male"),
+    Percentage = c(percentage_female, percentage_male)
+)
+
+# Create a bar plot with ggplot
+p_title <- "Percentage of Male and Female Bees"
+p <- ggplot(sex_per_df, aes(x = Sex, y = Percentage, fill = Sex)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = c("coral1", "lightseagreen")) +
+    labs(x = "Sex", y = "Percentage") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    theme(
+        axis.text = element_text(size = 14),
+        plot.title = element_text(hjust = 0.5, size = 16)
+    )
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+```
+```{r}
+# Calculate the percentage of bees caught using different sampling patterns
+sampling_patterns <- unique(oba_2018_2019$samplingProtocol)
+percentage_per_pattern <- sapply(sampling_patterns, function(pattern) {
+    total_bees <- sum(oba_2018_2019$samplingProtocol == pattern, na.rm = TRUE)
+    percentage <- (total_bees / nrow(oba_2018_2019)) * 100
+    return(percentage)
+})
+
+sampling_per_df <- data.frame(
+    patterns = sampling_patterns,
+    percentage = percentage_per_pattern
+)
+
+# Create a stacked bar plot with percentages
+p_title <- "Percentage of Bees by Sampling Protocol"
+p <- ggplot(sampling_per_df, aes(x = patterns, y = percentage, fill = patterns)) +
+    geom_bar(stat = "identity", position = "stack", show.legend = F) +
+    labs(x = "Sex", y = "Percentage", fill = "Sampling Protocol") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    theme(
+        axis.text = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5)
+    ) +
+    scale_fill_brewer(palette = "Set2")
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+```
+```{r}
+p_title <- "Percentage of Male and Female Bees by Sampling Protocol"
+p <- oba_2018_2019 %>%
+    filter(sex != "") %>%
+    group_by(sex, samplingProtocol) %>%
+    summarise(n_group = n()) %>%
+    ungroup() %>%
+    group_by(samplingProtocol) %>%
+    mutate(
+        n_sampling = sum(n_group),
+        percentage = n_group / n_sampling
+    ) %>%
+    ggplot(aes(x = samplingProtocol, y = percentage, fill = sex)) +
+    geom_bar(stat = "identity", position = "stack") +
+    labs(x = "Sampling Protocol", y = "Percentage", fill = "Sex") +
+    ggtitle(p_title) +
+    scale_fill_manual(values = c("coral1", "lightseagreen")) +
+    scale_y_continuous(labels = scales::percent_format()) +
+    theme_minimal(16) +
+    theme(
+        axis.text = element_text(size = 13),
+        plot.title = element_text(hjust = 0.5)
+    )
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+
+# Generate the plot
+p_title <- "Percentage of Bees by Sampling Protocol_2"
+p <- oba_2018_2019 %>%
+    filter(sex != "") %>%
+    group_by(sex, samplingProtocol) %>%
+    summarise(n_group = n()) %>%
+    ungroup() %>%
+    group_by(sex) %>%
+    mutate(
+        n_sampling = sum(n_group),
+        percentage = n_group / n_sampling
+    ) %>%
+    ggplot(aes(x = sex, y = percentage, fill = samplingProtocol)) +
+    geom_bar(stat = "identity", position = "stack") +
+    labs(x = "Sex", y = "Percentage", fill = "Sampling Protocol") +
+    ggtitle(p_title) +
+    scale_fill_brewer(palette = "Set2") +
+    scale_y_continuous(labels = scales::percent_format()) +
+    theme_minimal(18) +
+    theme(
+        axis.text = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5)
+    )
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+```
+# 2. Climate and Foraging Patterns
+## Lane county
+```{r}
+# get climate data for lane county
+
+# Read csv files
+avg_temp <- read.csv("data/lane_county_avg_temp_2018_2019.csv", skip = 3, header = 4)
+avg_ppt <- read.csv("data/lane_county_precipitation_2018_2019.csv", skip = 3, header = 4)
+
+# rename columns
+colnames(avg_temp)[colnames(avg_temp) == "Date"] <- "date"
+colnames(avg_temp)[colnames(avg_temp) == "Value"] <- "temp_f"
+colnames(avg_ppt)[colnames(avg_ppt) == "Date"] <- "date"
+colnames(avg_ppt)[colnames(avg_ppt) == "Value"] <- "ppt_inch"
+
+# add column 'year' and 'month' from the first four string character from the 'Date' column
+avg_temp$year <- substr(avg_temp$date, 1, 4)
+avg_temp$month <- substr(avg_temp$date, 5, 6)
+avg_temp$year <- as.numeric(avg_temp$year)
+avg_temp$month <- as.numeric(avg_temp$month)
+avg_temp$temp_c <- (avg_temp$temp_f - 32) * (5 / 9) # add celsius
+head(avg_temp)
+avg_ppt$year <- substr(avg_ppt$date, 1, 4)
+avg_ppt$month <- substr(avg_ppt$date, 5, 6)
+avg_ppt$year <- as.numeric(avg_ppt$year)
+avg_ppt$month <- as.numeric(avg_ppt$month)
+avg_ppt$ppt_cm <- avg_ppt$ppt_inch * 2.54 # add cm ppt
+head(avg_ppt)
+```
+
+```{r}
+lane_oba_2018_2019 <- oba_2018_2019 %>%
+    filter(county == "Lane")
+
+# find the count of total number of 'gbifID' by year and month in lane_oba_2018_2019
+net_count_per_month <- lane_oba_2018_2019 %>%
+    group_by(year, month) %>%
+    summarise(count = n_distinct(gbifID))
+
+species_count_per_month <- lane_oba_2018_2019 %>%
+    filter(species != "") %>%
+    group_by(year, month) %>%
+    summarise(count = n_distinct(species))
+
+# get and add ppt_cm information from avg_ppt df by year and month
+net_count_per_month <- net_count_per_month %>%
+    left_join(avg_ppt, by = c("year", "month")) %>%
+    left_join(avg_temp, by = c("year", "month"))
+
+species_count_per_month <- species_count_per_month %>%
+    left_join(avg_ppt, by = c("year", "month")) %>%
+    left_join(avg_temp, by = c("year", "month"))
+
+head(net_count_per_month)
+head(species_count_per_month)
+```
+Plot wrt temp
+```{r}
+# Scatter plot
+ggplot(net_count_per_month) +
+    geom_point(aes(x = temp_c, y = count), size = 5, color = "blue") +
+    labs(x = "Temperature (°C)", y = "Count") +
+    ggtitle("Net Count vs Mean Temp") +
+    theme_minimal(18) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(species_count_per_month) +
+    geom_point(aes(x = temp_c, y = count), size = 5, color = "blue") +
+    labs(x = "Temperature (°C)", y = "Count") +
+    ggtitle("Species Count vs Mean Temp") +
+    theme_minimal(18) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+```{r}
+lin_reg <- lm(species_count_per_month$count ~ species_count_per_month$temp_c)
+lin_reg_slope <- summary(lin_reg)$coefficients[2]
+lin_reg_pval <- summary(lin_reg)$coefficients[7]
+summary(lin_reg)
+print(lin_reg_slope)
+print(lin_reg_pval)
+
+
+ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
+    geom_point(size = 5, color = "blue") +
+    labs(x = "Temperature (°C)", y = "Count") +
+    ggtitle("Species Count vs Mean Temp") +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+Plot wrt ppt
+```{r}
+# Scatter plot
+ggplot(net_count_per_month) +
+    geom_point(aes(x = ppt_cm, y = count), size = 5, color = "blue") +
+    labs(x = "Precipitation (cm)", y = "Count") +
+    ggtitle("Net Count vs Mean Precipitation") +
+    theme_minimal(18)+
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+ggplot(species_count_per_month) +
+    geom_point(aes(x = ppt_cm, y = count), size = 5, color = "blue") +
+    labs(x = "Precipitation (cm)", y = "Count") +
+    ggtitle("Species Count vs Mean Precipitation") +
+    theme_minimal(18) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+```{r}
+lin_reg <- lm(net_count_per_month$count ~ species_count_per_month$ppt_cm)
+lin_reg_slope <- summary(lin_reg)$coefficients[2]
+lin_reg_pval <- summary(lin_reg)$coefficients[7]
+summary(lin_reg)
+print(lin_reg_slope)
+print(lin_reg_pval)
+
+
+ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
+    geom_point(size = 5, color = "blue") +
+    labs(x = "Precipitation (cm)", y = "Count") +
+    ggtitle("Net Count vs Mean Temp") +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+## Oregon
+```{r}
+# get climate data for lane county
+
+# Read csv files
+avg_temp <- read.csv("data/oregon_avg_temp_2018_2019.csv", skip = 3, header = 4)
+avg_ppt <- read.csv("data/oregon_precipitation_2018_2019.csv", skip = 3, header = 4)
+
+# rename columns
+colnames(avg_temp)[colnames(avg_temp) == "Date"] <- "date"
+colnames(avg_temp)[colnames(avg_temp) == "Value"] <- "temp_f"
+colnames(avg_ppt)[colnames(avg_ppt) == "Date"] <- "date"
+colnames(avg_ppt)[colnames(avg_ppt) == "Value"] <- "ppt_inch"
+
+# add column 'year' and 'month' from the first four string character from the 'Date' column
+avg_temp$year <- substr(avg_temp$date, 1, 4)
+avg_temp$month <- substr(avg_temp$date, 5, 6)
+avg_temp$year <- as.numeric(avg_temp$year)
+avg_temp$month <- as.numeric(avg_temp$month)
+avg_temp$temp_c <- (avg_temp$temp_f - 32) * (5 / 9) # add celsius
+head(avg_temp)
+avg_ppt$year <- substr(avg_ppt$date, 1, 4)
+avg_ppt$month <- substr(avg_ppt$date, 5, 6)
+avg_ppt$year <- as.numeric(avg_ppt$year)
+avg_ppt$month <- as.numeric(avg_ppt$month)
+avg_ppt$ppt_cm <- avg_ppt$ppt_inch * 2.54 # add cm ppt
+head(avg_ppt)
+```
+
+```{r}
+
+# find the count of total number of 'gbifID' by year and month in oba_2018_2019
+net_count_per_month <- oba_2018_2019 %>%
+    group_by(year, month) %>%
+    summarise(count = n_distinct(gbifID))
+
+species_count_per_month <- oba_2018_2019 %>%
+    filter(species != "") %>%
+    group_by(year, month) %>%
+    summarise(count = n_distinct(species))
+
+# get and add ppt_cm information from avg_ppt df by year and month
+net_count_per_month <- net_count_per_month %>%
+    left_join(avg_ppt, by = c("year", "month")) %>%
+    left_join(avg_temp, by = c("year", "month"))
+
+species_count_per_month <- species_count_per_month %>%
+    left_join(avg_ppt, by = c("year", "month")) %>%
+    left_join(avg_temp, by = c("year", "month"))
+
+head(net_count_per_month)
+head(species_count_per_month)
+```
+Plot wrt temp
+```{r}
+# Scatter plot
+lin_reg <- lm(net_count_per_month$count ~ net_count_per_month$temp_c)
+# lin_reg_slope <- summary(lin_reg)$coefficients[2]
+# lin_reg_pval <- summary(lin_reg)$coefficients[7]
+summary(lin_reg)
+p_title = "Oregon - Net Count vs Mean Monthly Temperature"
+p <- ggplot(net_count_per_month, aes(x = temp_c, y = count)) +
+    geom_point(size = 5, color = "#ff0000") +
+    labs(x = "Temperature (°C)", y = "Total #Bees") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE, color="#ff0000") +
+    theme(plot.title = element_text(hjust = 0.5))
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+
+
+lin_reg <- lm(species_count_per_month$count ~ species_count_per_month$temp_c)
+summary(lin_reg)
+p_title <- "Oregon - Species Count vs Mean Monthly Temperature"
+p <- ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
+    geom_point(size = 5, color = "#ff0000") +
+    labs(x = "Temperature (°C)", y = "#Unique Bee Species") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE, color = "#ff0000") +
+    theme(plot.title = element_text(hjust = 0.5))
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+```
+Plot wrt ppt
+```{r}
+lin_reg <- lm(net_count_per_month$count ~ net_count_per_month$ppt_cm)
+# lin_reg_slope <- summary(lin_reg)$coefficients[2]
+# lin_reg_pval <- summary(lin_reg)$coefficients[7]
+summary(lin_reg)
+p_title <- "Oregon - Net Count vs Mean Monthly Precipitation"
+p <- ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
+    geom_point(size = 5, color = "lightseagreen") +
+    labs(x = "Precipitation (cm)", y = "Total #Bees") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
+    theme(plot.title = element_text(hjust = 0.5))
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+
+lin_reg <- lm(species_count_per_month$count ~ species_count_per_month$ppt_cm)
+summary(lin_reg)
+p_title <- "Oregon - Species Count vs Mean Monthly Precipitation"
+p <- ggplot(species_count_per_month, aes(x = ppt_cm, y = count)) +
+    geom_point(size = 5, color = "lightseagreen") +
+    labs(x = "Precipitation (cm)", y = "#Unique Bee Species") +
+    ggtitle(p_title) +
+    theme_minimal(18) +
+    geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
+    theme(plot.title = element_text(hjust = 0.5))
+p
+ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+```
