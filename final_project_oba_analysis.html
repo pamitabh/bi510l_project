@@ -629,16 +629,16 @@ head(oba_2018_2019, 3)</code></pre>
 <div id="only-keep-the-plant-names-in-the-string" class="section level2">
 <h2>1. Only keep the plant names in the string</h2>
 <pre class="r"><code>sample(oba_2018_2019$associatedTaxa, size = 10)</code></pre>
-<pre><code>##  [1] &quot;\&quot;foraging on\&quot; : \&quot;Chamaenerion angustifolium\&quot;&quot;
-##  [2] &quot;foraging on : \&quot;Salix\&quot;&quot;                         
-##  [3] &quot;\&quot;foraging on\&quot; : \&quot;Agastache urticifolia\&quot;&quot;     
-##  [4] &quot;foraging on : \&quot;Acer macrophyllum\&quot;&quot;             
-##  [5] &quot;foraging on : \&quot;Salix\&quot;&quot;                         
-##  [6] &quot;\&quot;foraging on\&quot; : \&quot;Euphorbia esula\&quot;&quot;           
-##  [7] &quot;foraging on : \&quot;Ranunculus occidentalis\&quot;&quot;       
-##  [8] &quot;\&quot;foraging on\&quot; : \&quot;Taraxacum\&quot;&quot;                 
-##  [9] &quot;&quot;                                                
-## [10] &quot;&quot;</code></pre>
+<pre><code>##  [1] &quot;\&quot;foraging on\&quot; : \&quot;Achillea millefolium\&quot;&quot;  
+##  [2] &quot;\&quot;foraging on\&quot; : \&quot;Leucanthemum vulgare\&quot;&quot;  
+##  [3] &quot;&quot;                                            
+##  [4] &quot;foraging on : \&quot;Asteraceae\&quot;&quot;                
+##  [5] &quot;foraging on : \&quot;Clarkia amoena\&quot;&quot;            
+##  [6] &quot;foraging on : \&quot;Phacelia\&quot;&quot;                  
+##  [7] &quot;foraging on : \&quot;Cirsium remotifolium\&quot;&quot;      
+##  [8] &quot;&quot;                                            
+##  [9] &quot;\&quot;foraging on\&quot; : \&quot;Bellis\&quot;&quot;                
+## [10] &quot;foraging on : \&quot;Symphyotrichum subspicatum\&quot;&quot;</code></pre>
 <pre class="r"><code># using regex to select for the pattern to keep rather than the pattern to drop
 # noticed that the plant name is always bounded by the second double quotes &quot;&quot;
 
@@ -651,10 +651,10 @@ plant_name_list &lt;- match[, &quot;plant&quot;]
 plant_name_list[is.na(plant_name_list)] &lt;- &quot;&quot;
 oba_2018_2019$associatedTaxa &lt;- plant_name_list
 sample(oba_2018_2019$associatedTaxa, size = 10)</code></pre>
-<pre><code>##  [1] &quot;Origanum vulgare&quot;   &quot;Vicia americana&quot;    &quot;&quot;                  
-##  [4] &quot;&quot;                   &quot;Prunella vulgaris&quot;  &quot;&quot;                  
-##  [7] &quot;Ranunculaceae&quot;      &quot;Lupinus&quot;            &quot;Phacelia corymbosa&quot;
-## [10] &quot;&quot;</code></pre>
+<pre><code>##  [1] &quot;Potentilla gracilis&quot;  &quot;Taraxacum officinale&quot; &quot;&quot;                    
+##  [4] &quot;Senecio&quot;              &quot;Ericameria nauseosa&quot;  &quot;Solidago canadensis&quot; 
+##  [7] &quot;&quot;                     &quot;Sedum&quot;                &quot;&quot;                    
+## [10] &quot;Plectritis congesta&quot;</code></pre>
 </div>
 <div id="remove-all-weed-names-and-keep-only-one-plant-name" class="section level2">
 <h2>2. Remove all weed names and keep only one plant name</h2>

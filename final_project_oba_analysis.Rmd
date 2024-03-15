@@ -1,6 +1,6 @@
 ---
 title: "Remaining Analysis steps for the final project"
-output: html_document
+output: pdf_document
 author:
   - Piyush Amitabh
 ---
