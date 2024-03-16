@@ -1,29 +1,64 @@
 ---
-title: "Remaining Analysis steps for the final project"
+title: "Final Report"
 output: pdf_document
 author:
   - Piyush Amitabh
 ---
 
 <!-- Lesson Overview -->
+# Introduction
 
-# Topics explored in this pdf_document
+Animal pollinators, particularly bees, play a crucial role in the producing global food crops (Klein et al., 2007) and maintaining ecosystem health and biodiversity by facilitating plant reproduction (Biesmeijer et al., 2006). Understanding the dynamics of bee-plant interactions is essential for conservation efforts, agricultural productivity, sustainable development and ecosystem resilience (Patel et al., 2021, Huang et al., 2021). 
 
-1.  **Sexual Dimorphism and Foraging Behavior:** 
-We will explore differences in foraging behavior between male and female bees and investigate whether they forage on different plant species. 
+In this study, we utilize the Oregon Bee Atlas (OBA) dataset which is a citizen science project in which trained volunteers catch bee species around Oregon which is then verified by experts before logging its information and preserving the specimen (Best et al., 2021, 2022). This dataset covers the state of Oregon in the Pacific Northwest of the US, spanning two years (2018-2019) and includes information on bee species, the plants they were foraging on, date caught, and sex. Combined with other open datasets, OBA can provide a valuable opportunity to explore various aspects of bee-plant interactions and their implications for ecosystem functioning.
 
-2. **Identification of Keystone Plant Species:** Using simulation models, we will assess the potential consequences of the extinction of different plant species, identifying the keystone plant species that are most critical for supporting bee populations. This analysis will involve simulating the removal of these plant species from the ecosystem and evaluating the impact on bee species richness, abundance, and diversity.
+# Background and Research Questions
+## Part 1: Effect of Sampling Protocols and Urbanization on Bee Sex Ratio
+### Background: Sampling Protocol and Taxon level biases
+Different types of sampling protocols used to collect bees in the OBA are aerial net, blue vane trap, pan trap and trap nest. The aerial net is considered active method while the rest are considered passive. Many studies in the literature have shown that taxon level biases exist between different sampling protocols, some of them are listed below:
 
-3. **Climate and Foraging Patterns:** By integrating climate data, we aim to understand how climatic factors influence bee foraging behavior and whether there are changes in foraging patterns in response to climate variability. This analysis will involve data from sources such as the National Climatic Data Center (NCDC) (https://www.ncdc.noaa.gov/) for climate data (Parmesan et al., 2003).
+1. **Aerial Net** involves using nets to capture insects or small animals while they are flying or moving through the air. Active methods, such as aerial netting, rely heavily on the researcher's observational abilities and netting skill. These techniques involve physically capturing or directly interacting with organisms in their natural environment. Success in these methods often depends on the researcher's ability to accurately observe and predict the behavior of the target organisms, as well as their skill in using the equipment effectively (Roulston et al 2007).
+
+2. **Blue Vane Traps** are effective for capturing larger bees, particularly species like Bombus and Eucerine bees (Geroff et al., 2014; McCravy et al., 2017; Kimoto et al., 2012; Buchanan et al., 2017). These traps typically consist of a blue vane that attracts bees, leading them into a capturing mechanism.
+
+3. **Pan Traps** are useful for catching small bees, especially Halictid bees, but they capture bigger bees less frequently (Droege et al., 2010; Richards et al., 2011; Toler et al., 2005). These traps involve shallow pans filled with soapy water, which attracts and drowns the bees.
+
+4. **Trap Nests** are designed to catch cavity-building and more solitary bees, though only a small subset of potential cavity-nesting bee species actually use them (Campbell et al., 2017). These traps consist of tubes or cavities that mimic natural nesting sites for bees.
+
+### Background: Importance of Bee Sex Ratio
+Bee Sex Ration is an important factor as it can influence population dynamics of bee communities. It also has strong effects on foraging behavior of the bees. Studies have shown that there are differences in floral preferences (which flowers the bees visit), floral constancy (how likely is a bee to visit the flower of the same species), pollen transfer efficiency (efficiency of pollen transfer between the flowers), and flight distance between foraging bouts among male and female bees (Ritchie et al., 2016; Ne'eman et al., 2006; Ostevik et al., 2010). These differences can have implications for the overall foraging efficiency and reproductive success of bee populations. Moreover, there is evidence to suggest that the sex ratio of bee populations can change with levels of urbanization, with urban areas showing a more male-biased sex ratio. This change is mainly driven by a decline in medium and large-bodied ground-nesting female bees in urban environments (Fitch et al., 2019). Understanding these sex-based differences and their impact on population dynamics is crucial for effective conservation strategies for bee species.
+
+### Research Questions
+**1A. Effect of Sampling Protocols**
+Are different sampling protocols more likely to capture bees of one sex than another?
+
+**1B. Effect of Human population (marker for urbanization)**
+How does human population levels affect bee distribution and sex ratio?
+
+## Part 2: Effect of Weather on Bee Populations
+### Background
+Weather patterns play a crucial role in influencing the behavior and ecology of bees, both in their nursery and foraging activities. Studies have shown that increasing temperatures can enhance flight activity among bees, while decreasing temperatures have the opposite effect (Riessberger & Crailsheim, 1997; Burrill & Dietz, 1981). Moreover, temperature and precipitation have been identified as more important predictors of bee behavior than landscape composition, quality, or topography (Kammerer et al., 2021). Long-term precipitation patterns can also significantly impact bee communities by affecting the availability of floral resources (Thomson, 2016).
+
+Despite the importance of weather patterns, there is a limited understanding of how short-term weather fluctuations affect wild bee populations in Oregon. Previous studies have primarily focused on long-term trends and the effects of climate change on bees. Understanding the short-term impacts of weather on bee populations is crucial for developing effective conservation strategies, especially in the face of climate change and increasing weather variability (Burrill & Dietz, 1981; Kammerer et al., 2021).
+
+### Research Questions
+How does the number of foraging bees change with temperature and precipitation?
+
+# Additional Data Sources Used
+1. Oregon County level Population from Oregon Demographics by Cubit (https://www.oregon-demographics.com)
+2. Oregon Climate Data from National Oceanic and Atmospheric Administration (https://graphical.weather.gov/sectors/oregon.php)
+
+# Code
 
 -------------------------------
 ```{r load-libraries, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(stringr)
-library(igraph)
-library(networkD3) # nolint: object_name_linter
 library(glue)
+library(terra)
+library(glue)
+library(sf)
 ```
 
 # Import OBA datasets
@@ -34,7 +69,7 @@ oba_2018 <- read.csv("data/2018_occurrence.csv")
 oba_2019 <- read.csv("data/2019_occurrence.csv")
 cat("The colnames are identical:", identical(colnames(oba_2018), colnames(oba_2019)))
 oba_2018_2019 <- rbind(oba_2018, oba_2019)
-head(oba_2018_2019, 3)
+# head(oba_2018_2019, 3)
 ```
 
 # Clean dataset using regex
@@ -169,7 +204,8 @@ if (unique_gbifID == total_gbifID) {
 ```
 This means we can use gbifID as a unique identifier
 
-# 1. Sexual Dimorphism
+# 1. Bee Sex Ratio
+## A. Effect of Sampling Protocols
 ```{r}
 # check the TOTAL PERCENTAGE of MALE vs FEMALE bees caught
 total_male <- sum(oba_2018_2019$sex == "MALE", na.rm = TRUE)
@@ -198,7 +234,7 @@ p <- ggplot(sex_per_df, aes(x = Sex, y = Percentage, fill = Sex)) +
         plot.title = element_text(hjust = 0.5, size = 16)
     )
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 ```
 ```{r}
 # Calculate the percentage of bees caught using different sampling patterns
@@ -227,7 +263,7 @@ p <- ggplot(sampling_per_df, aes(x = patterns, y = percentage, fill = patterns))
     ) +
     scale_fill_brewer(palette = "Set2")
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 ```
 ```{r}
 p_title <- "Percentage of Male and Female Bees by Sampling Protocol"
@@ -253,7 +289,7 @@ p <- oba_2018_2019 %>%
         plot.title = element_text(hjust = 0.5)
     )
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 
 # Generate the plot
 p_title <- "Percentage of Bees by Sampling Protocol_2"
@@ -279,9 +315,104 @@ p <- oba_2018_2019 %>%
         plot.title = element_text(hjust = 0.5)
     )
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 ```
-# 2. Climate and Foraging Patterns
+## B. Effect of Human Population
+Download basemaps into R using the map_data function in ggplot
+
+```{r plot-or}
+# get Oregon map
+or_map_base_df <- map_data("state") %>%
+  filter(region == "oregon") %>%
+  select(longitude = long, latitude = lat, group_id = group, state_name = region)
+str(or_map_base_df)
+
+or_map_county_df <- map_data("county", "oregon") %>%
+  select(longitude = long, latitude = lat, group_id = group, county_name = subregion)
+str(or_map_county_df)
+
+# plot Oregon map with bee location overlaid
+plot_or_w_county <- ggplot() +
+  geom_polygon(
+    data = or_map_county_df, fill = "lightgray", color = "white",
+    aes(x = longitude, y = latitude, group = county_name)
+  ) +
+  geom_polygon(
+    data = or_map_base_df, fill = NA, color = "black",
+    aes(x = longitude, y = latitude, group = state_name)
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+plot_or_w_county +
+  ggtitle(glue("Map of Oregon with County Boundaries")) +
+  coord_quickmap()
+```
+
+```{r get-or-demographic-data}
+# data taken from https://www.oregon-demographics.com/counties_by_population
+
+# make a data frame
+or_dem <- readxl::read_xlsx("./data/oregon_demographics_by_county.xlsx", skip = 4, col_names = TRUE)
+head(or_dem)
+colnames(or_dem)
+
+# select only two columns, remove oregon total population, add 'county' col, convert everything to lowercase
+or_pop_by_county_df <- or_dem %>%
+  select(name, population) %>%
+  filter(name != "Oregon") %>%
+  mutate(county_name = tolower(str_replace(name, " County$", ""))) %>%
+  select(-name)
+
+head(or_pop_by_county_df)
+head(or_map_county_df)
+
+# now the county_name in or_pop_by_county_df corresponds to or_map_county_df, join them in a single df
+or_map_with_population_df <- left_join(or_map_county_df, or_pop_by_county_df, by = "county_name")
+head(or_map_with_population_df)
+
+plot_or_w_county +
+  ggtitle(glue("Map of Oregon with Population by County")) +
+  geom_polygon(data = or_map_with_population_df, 
+  aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white") +
+  scale_fill_continuous(trans = "log10", type = "viridis")
+coord_sf(datum = sf::st_crs(4326))
+```
+
+```{r}
+summary(oba_2018_2019$decimalLatitude)
+summary(oba_2018_2019$decimalLongitude)
+
+all_species_data <- oba_2018_2019 %>%
+  filter((decimalLongitude < -116) & (decimalLatitude < 46.5) & (sex != "")) %>%
+  select(x = decimalLongitude, y = decimalLatitude, sex)
+
+all_species_spatial <- st_as_sf(all_species_data, coords = c("x", "y"), crs = "WGS84")
+
+p_title <- "Map of All Bee Locations with County Population info"
+p <- ggplot() +
+  geom_polygon(
+    data = or_map_county_df, fill = "lightgray", color = "white",
+    aes(x = longitude, y = latitude, group = county_name)
+  ) +
+  geom_polygon(
+    data = or_map_with_population_df,
+    aes(x = longitude, y = latitude, fill = population, group = county_name), color = "white"
+  ) +
+  scale_fill_gradient(trans = "log10", low = "antiquewhite1", high = "antiquewhite4") +
+  geom_polygon(
+    data = or_map_base_df, fill = NA, color = "black",
+    aes(x = longitude, y = latitude, group = state_name)
+  ) +
+  # geom_sf(data = all_species_spatial, color = "darkorange", alpha = 0.1, size = 2) +
+  geom_sf(data = all_species_spatial, aes(color = sex), alpha = 0.2, size = 2) +
+  # geom_segment(aes(x = -118.4, y = 42.3, xend = -117.21, yend = 42.3), linewidth = 4) +
+  # annotate("text", x = -117.8, y = 42.43, label = "100 km", size = 4) +
+  # theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle(p_title)
+p
+# ggsave(glue("plots/{p_title}_by_sex.png"), dpi = 300, plot = p)
+```
+
+# 2. Weather and Foraging Patterns
 ## Lane county
 ```{r}
 # get climate data for lane county
@@ -337,7 +468,7 @@ species_count_per_month <- species_count_per_month %>%
 head(net_count_per_month)
 head(species_count_per_month)
 ```
-Plot wrt temp
+### Temperature effect
 ```{r}
 # Scatter plot
 ggplot(net_count_per_month) +
@@ -371,7 +502,7 @@ ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
     geom_smooth(method = "lm", se = TRUE) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
-Plot wrt ppt
+### Precipitation effect
 ```{r}
 # Scatter plot
 ggplot(net_count_per_month) +
@@ -408,8 +539,7 @@ ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
 ```
 ## Oregon
 ```{r}
-# get climate data for lane county
-
+# get climate data for Oregon
 # Read csv files
 avg_temp <- read.csv("data/oregon_avg_temp_2018_2019.csv", skip = 3, header = 4)
 avg_ppt <- read.csv("data/oregon_precipitation_2018_2019.csv", skip = 3, header = 4)
@@ -436,7 +566,6 @@ head(avg_ppt)
 ```
 
 ```{r}
-
 # find the count of total number of 'gbifID' by year and month in oba_2018_2019
 net_count_per_month <- oba_2018_2019 %>%
     group_by(year, month) %>%
@@ -459,7 +588,7 @@ species_count_per_month <- species_count_per_month %>%
 head(net_count_per_month)
 head(species_count_per_month)
 ```
-Plot wrt temp
+### Temperature Effect
 ```{r}
 # Scatter plot
 lin_reg <- lm(net_count_per_month$count ~ net_count_per_month$temp_c)
@@ -475,7 +604,7 @@ p <- ggplot(net_count_per_month, aes(x = temp_c, y = count)) +
     geom_smooth(method = "lm", se = TRUE, color="#ff0000") +
     theme(plot.title = element_text(hjust = 0.5))
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 
 
 lin_reg <- lm(species_count_per_month$count ~ species_count_per_month$temp_c)
@@ -489,9 +618,9 @@ p <- ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
     geom_smooth(method = "lm", se = TRUE, color = "#ff0000") +
     theme(plot.title = element_text(hjust = 0.5))
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 ```
-Plot wrt ppt
+### Precipitation effect
 ```{r}
 lin_reg <- lm(net_count_per_month$count ~ net_count_per_month$ppt_cm)
 # lin_reg_slope <- summary(lin_reg)$coefficients[2]
@@ -506,7 +635,7 @@ p <- ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
     geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
     theme(plot.title = element_text(hjust = 0.5))
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 
 lin_reg <- lm(species_count_per_month$count ~ species_count_per_month$ppt_cm)
 summary(lin_reg)
@@ -519,5 +648,17 @@ p <- ggplot(species_count_per_month, aes(x = ppt_cm, y = count)) +
     geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
     theme(plot.title = element_text(hjust = 0.5))
 p
-ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
+# ggsave(glue("plots/{p_title}.png"), dpi = 300, plot = p)
 ```
+# Results
+1. A. Effect of Sampling Protocols: Are different sampling protocols more likely to capture bees of one sex than another?
+ - Yes!
+Trap nests capture a higher percentage of male bees. For example, in a colony, the male-to-female ratio is typically 1:100, while for solitary bees, it's closer to 1:1 (Willmer, 2011).
+
+1. B. Effect of Human Population (Marker for Urbanization): How does the human population level affect bee distribution and sex ratio?
+- There is a higher occurrence of bees near population centers. However, this observation comes with a caveat, as it can be influenced by sampling bias. My studies have not shown a clear difference in the sex ratio of bees in urbanized areas compared to other habitats.
+
+2. Effect of Local Weather on Bee Populations: How does the number of foraging bees change with temperature and precipitation?
+- In my study, I found that the number of unique bee species significantly increases with increasing average monthly temperature. Conversely, the number of foraging bees tends to significantly decrease with increasing average monthly precipitation. These findings highlight the intricate relationship between local weather patterns and bee populations, emphasizing the importance of considering climatic factors in bee conservation efforts.
+
+
