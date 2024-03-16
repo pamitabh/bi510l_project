@@ -228,7 +228,7 @@ p <- ggplot(sex_per_df, aes(x = Sex, y = Percentage, fill = Sex)) +
     scale_fill_manual(values = c("coral1", "lightseagreen")) +
     labs(x = "Sex", y = "Percentage") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(
         axis.text = element_text(size = 14),
         plot.title = element_text(hjust = 0.5, size = 16)
@@ -256,7 +256,7 @@ p <- ggplot(sampling_per_df, aes(x = patterns, y = percentage, fill = patterns))
     geom_bar(stat = "identity", position = "stack", show.legend = F) +
     labs(x = "Sex", y = "Percentage", fill = "Sampling Protocol") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(
         axis.text = element_text(size = 16),
         plot.title = element_text(hjust = 0.5)
@@ -283,7 +283,7 @@ p <- oba_2018_2019 %>%
     ggtitle(p_title) +
     scale_fill_manual(values = c("coral1", "lightseagreen")) +
     scale_y_continuous(labels = scales::percent_format()) +
-    theme_minimal(16) +
+    theme_minimal(15) +
     theme(
         axis.text = element_text(size = 13),
         plot.title = element_text(hjust = 0.5)
@@ -309,7 +309,7 @@ p <- oba_2018_2019 %>%
     ggtitle(p_title) +
     scale_fill_brewer(palette = "Set2") +
     scale_y_continuous(labels = scales::percent_format()) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(
         axis.text = element_text(size = 16),
         plot.title = element_text(hjust = 0.5)
@@ -475,14 +475,14 @@ ggplot(net_count_per_month) +
     geom_point(aes(x = temp_c, y = count), size = 5, color = "blue") +
     labs(x = "Temperature (°C)", y = "Count") +
     ggtitle("Net Count vs Mean Temp") +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(species_count_per_month) +
     geom_point(aes(x = temp_c, y = count), size = 5, color = "blue") +
     labs(x = "Temperature (°C)", y = "Count") +
     ggtitle("Species Count vs Mean Temp") +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
 ```{r}
@@ -498,7 +498,7 @@ ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
     geom_point(size = 5, color = "blue") +
     labs(x = "Temperature (°C)", y = "Count") +
     ggtitle("Species Count vs Mean Temp") +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -509,7 +509,7 @@ ggplot(net_count_per_month) +
     geom_point(aes(x = ppt_cm, y = count), size = 5, color = "blue") +
     labs(x = "Precipitation (cm)", y = "Count") +
     ggtitle("Net Count vs Mean Precipitation") +
-    theme_minimal(18)+
+    theme_minimal(15)+
     theme(plot.title = element_text(hjust = 0.5))
 
 
@@ -517,7 +517,7 @@ ggplot(species_count_per_month) +
     geom_point(aes(x = ppt_cm, y = count), size = 5, color = "blue") +
     labs(x = "Precipitation (cm)", y = "Count") +
     ggtitle("Species Count vs Mean Precipitation") +
-    theme_minimal(18) +
+    theme_minimal(15) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
 ```{r}
@@ -533,7 +533,7 @@ ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
     geom_point(size = 5, color = "blue") +
     labs(x = "Precipitation (cm)", y = "Count") +
     ggtitle("Net Count vs Mean Temp") +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -600,7 +600,7 @@ p <- ggplot(net_count_per_month, aes(x = temp_c, y = count)) +
     geom_point(size = 5, color = "#ff0000") +
     labs(x = "Temperature (°C)", y = "Total #Bees") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE, color="#ff0000") +
     theme(plot.title = element_text(hjust = 0.5))
 p
@@ -614,7 +614,7 @@ p <- ggplot(species_count_per_month, aes(x = temp_c, y = count)) +
     geom_point(size = 5, color = "#ff0000") +
     labs(x = "Temperature (°C)", y = "#Unique Bee Species") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE, color = "#ff0000") +
     theme(plot.title = element_text(hjust = 0.5))
 p
@@ -631,7 +631,7 @@ p <- ggplot(net_count_per_month, aes(x = ppt_cm, y = count)) +
     geom_point(size = 5, color = "lightseagreen") +
     labs(x = "Precipitation (cm)", y = "Total #Bees") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
     theme(plot.title = element_text(hjust = 0.5))
 p
@@ -644,7 +644,7 @@ p <- ggplot(species_count_per_month, aes(x = ppt_cm, y = count)) +
     geom_point(size = 5, color = "lightseagreen") +
     labs(x = "Precipitation (cm)", y = "#Unique Bee Species") +
     ggtitle(p_title) +
-    theme_minimal(18) +
+    theme_minimal(15) +
     geom_smooth(method = "lm", se = TRUE, color = "lightseagreen") +
     theme(plot.title = element_text(hjust = 0.5))
 p
